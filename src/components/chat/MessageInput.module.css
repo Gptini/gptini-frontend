@@ -1,0 +1,81 @@
+.container {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  background-color: white;
+  border-top: 1px solid #e5e7eb;
+}
+
+.attachButton {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background-color: #f3f4f6;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.15s;
+}
+
+.attachButton:hover:not(:disabled) {
+  background-color: #e5e7eb;
+}
+
+.attachButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.input {
+  flex: 1;
+  min-height: 40px;
+  max-height: 120px;
+  padding: 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  font-size: 15px;
+  line-height: 1.4;
+  resize: none;
+  outline: none;
+  font-family: inherit;
+}
+
+.input:focus {
+  border-color: #4f46e5;
+}
+
+.input:disabled {
+  background-color: #f9fafb;
+}
+
+.input::placeholder {
+  color: #9ca3af;
+}
+
+.sendButton {
+  height: 40px;
+  padding: 0 20px;
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s;
+}
+
+.sendButton:hover:not(:disabled) {
+  background-color: #4338ca;
+}
+
+.sendButton:disabled {
+  background-color: #c7d2fe;
+  cursor: not-allowed;
+}

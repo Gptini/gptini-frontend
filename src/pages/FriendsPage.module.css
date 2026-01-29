@@ -1,0 +1,156 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 600px;
+  margin: 0 auto;
+  background-color: white;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.userName {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.myCode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background-color: #f0f9ff;
+  border-bottom: 1px solid #e0f2fe;
+}
+
+.codeLabel {
+  font-size: 14px;
+  color: #0369a1;
+}
+
+.codeButton {
+  padding: 6px 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0369a1;
+  font-family: monospace;
+  letter-spacing: 2px;
+  background-color: #e0f2fe;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-width: 100px;
+}
+
+.codeButton:hover {
+  background-color: #bae6fd;
+}
+
+.codeButton:active {
+  transform: scale(0.95);
+  background-color: #7dd3fc;
+}
+
+.toolbar {
+  padding: 12px 20px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+
+.tab:hover {
+  color: #374151;
+  background-color: #f9fafb;
+}
+
+.tab.active {
+  color: #4f46e5;
+  border-bottom-color: #4f46e5;
+  font-weight: 600;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 60px;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  gap: 16px;
+  color: #6b7280;
+}
+
+.empty p {
+  margin: 0;
+}
+
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  background-color: white;
+  border-top: 1px solid #e5e7eb;
+}
+
+.navItem {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.navItem:hover {
+  background-color: #f9fafb;
+}
+
+.navActive {
+  color: #4f46e5;
+  font-weight: 600;
+}

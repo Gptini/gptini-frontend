@@ -1,0 +1,87 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: var(--surface);
+}
+
+.input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.input::placeholder {
+  color: var(--text-secondary);
+}
+
+.input.error {
+  border-color: var(--error);
+}
+
+.input.error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.errorText {
+  font-size: 13px;
+  color: var(--error);
+}
+
+.helperText {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.helperText.success {
+  color: #10b981;
+}
+
+.helperText.error {
+  color: var(--error);
+}
+
+.hasToggle {
+  padding-right: 60px;
+}
+
+.toggleButton {
+  position: absolute;
+  right: 10px;
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.toggleButton:hover {
+  text-decoration: underline;
+}

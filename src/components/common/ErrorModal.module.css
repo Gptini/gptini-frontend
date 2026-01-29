@@ -1,0 +1,14 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.message {
+  margin: 0;
+  font-size: 15px;
+  color: #374151;
+  line-height: 1.5;
+  text-align: center;
+  word-break: keep-all;
+}
