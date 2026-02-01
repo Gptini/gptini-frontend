@@ -14,12 +14,18 @@ export const apiClient = axios.create({
 // 에러 모달 표시 함수
 const showErrorModal = (status: number, message?: string) => {
   const { showError } = useErrorStore.getState()
+  const hasToken = localStorage.getItem('accessToken')
 
   if (status >= 500) {
     showError('서버 오류', '서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.')
   } else if (status === 400) {
     showError('요청 오류', message || '잘못된 요청입니다.')
   } else if (status === 403) {
+    // 토큰 없으면 로그인 페이지로, 있으면 실제 권한 문제
+    if (!hasToken) {
+      window.location.href = '/login'
+      return
+    }
     showError('접근 거부', message || '접근 권한이 없습니다.')
   } else if (status === 404) {
     showError('찾을 수 없음', message || '요청한 정보를 찾을 수 없습니다.')
