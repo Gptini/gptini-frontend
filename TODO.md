@@ -55,3 +55,59 @@
 - [ ] 에러 핸들링
 - [ ] 반응형 스타일
 - [ ] 테스트
+
+## 10. 배포 설정
+
+### 1) EC2 접속
+```bash
+ssh -i gptini/gptini-keypair.pem ec2-user@3.37.92.94
+```
+
+### 2) Nginx 설정 (EC2에서 실행)
+```bash
+sudo tee /etc/nginx/conf.d/api.conf << 'EOF'
+server {
+    listen 80;
+    server_name api.gptini.org;
+
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /ws {
+        proxy_pass http://localhost:8080/ws;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+    }
+}
+EOF
+```
+
+### 3) Nginx 재시작 (EC2에서 실행)
+```bash
+sudo nginx -t && sudo systemctl restart nginx
+```
+
+### 4) SSL 인증서 발급 (EC2에서 실행)
+```bash
+sudo certbot --nginx -d api.gptini.org
+```
+
+### 5) GitHub Secrets 설정 (프론트엔드 레포)
+| Key | Value |
+|-----|-------|
+| `AWS_ACCESS_KEY_ID` | AWS 액세스 키 |
+| `AWS_SECRET_ACCESS_KEY` | AWS 시크릿 키 |
+| `CLOUDFRONT_DISTRIBUTION_ID` | `E3OMRR3R2VVWGV` |
+
+### 6) 백엔드 CORS 재배포
+```bash
+cd /Users/seochaeyeon/IdeaProjects/gptini/backend
+git add -A && git commit -m "Add production domains to CORS config" && git push
+```
