@@ -27,7 +27,7 @@ jobs:
         run: npm run build
         env:
           VITE_API_URL: https://api.gptini.org
-          VITE_WS_URL: wss://api.gptini.org/ws
+          VITE_WS_URL: https://api.gptini.org/ws
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
