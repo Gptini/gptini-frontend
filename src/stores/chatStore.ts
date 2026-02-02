@@ -213,9 +213,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   updateRoomData: (roomId: number, update: RoomUpdate) => {
+    console.log('[STOMP] updateRoomData called:', roomId, update)
     set((state) => {
       const newRoomUpdates = new Map(state.roomUpdates)
       newRoomUpdates.set(roomId, update)
+      console.log('[STOMP] updateRoomData set:', newRoomUpdates.size)
       return { roomUpdates: newRoomUpdates }
     })
   },

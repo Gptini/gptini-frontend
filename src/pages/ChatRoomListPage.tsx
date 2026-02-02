@@ -42,6 +42,7 @@ export default function ChatRoomListPage() {
 
   // 실시간 업데이트와 기존 데이터 병합
   const mergedRooms = useMemo(() => {
+    console.log('[ChatRoomListPage] merging rooms, roomUpdates size:', roomUpdates.size)
     const merged = rooms.map((room) => {
       const update = roomUpdates.get(room.id)
       if (update) {

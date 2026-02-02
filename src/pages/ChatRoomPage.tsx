@@ -33,10 +33,22 @@ export default function ChatRoomPage() {
   const [showMenu, setShowMenu] = useState(false)
   const [isLeaving, setIsLeaving] = useState(false)
 
+  // participants 상태 (read 이벤트로 업데이트됨)
+  const [participants, setParticipants] = useState<Map<number, number>>(new Map())
+
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const isInitialLoad = useRef(true)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  // 읽음 처리 coalescing용 ref
+  const lastSentReadIdRef = useRef<number | null>(null)
+  const pendingReadIdRef = useRef<number | null>(null)
+  const readTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // 재동기화용 ref
+  const unreadSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastSyncTimeRef = useRef<number>(0)
 
   const numericRoomId = Number(roomId)
 
@@ -44,20 +56,40 @@ export default function ChatRoomPage() {
     setMessages((prev) => [...prev, message])
   }, [])
 
+  // participants의 lastReadMessageId 갱신
   const handleReadStatusUpdate = useCallback(
     (data: { userId: number; messageId: number }) => {
-      if (data.userId === user?.id) return
-
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.messageId <= data.messageId && msg.unreadCount > 0
-            ? { ...msg, unreadCount: msg.unreadCount - 1 }
-            : msg
-        )
-      )
+      setParticipants(prev => {
+        const next = new Map(prev)
+        const current = next.get(data.userId) ?? 0
+        if (data.messageId > current) {
+          next.set(data.userId, data.messageId)
+        }
+        return next
+      })
     },
-    [user?.id]
+    []
   )
+
+  // participants 재동기화 함수 (REST 기반)
+  const syncParticipants = useCallback(async () => {
+    try {
+      const data = await chatApi.getParticipants(numericRoomId)
+      // idempotent merge: 기존 값보다 큰 경우에만 업데이트
+      setParticipants(prev => {
+        const next = new Map(prev)
+        data.forEach(p => {
+          const current = next.get(p.id) ?? 0
+          if (p.lastReadMessageId > current) {
+            next.set(p.id, p.lastReadMessageId)
+          }
+        })
+        return next
+      })
+    } catch (error) {
+      console.error('participants 동기화 실패:', error)
+    }
+  }, [numericRoomId])
 
   // 메뉴 외부 클릭 시 닫기
   useEffect(() => {
@@ -105,12 +137,37 @@ export default function ChatRoomPage() {
     [numericRoomId, storeSendMessage]
   )
 
-  const markAsRead = useCallback(
-    (messageId: number) => {
-      storeMarkAsRead(numericRoomId, messageId)
-    },
-    [numericRoomId, storeMarkAsRead]
-  )
+  // 실제 서버 전송
+  const flushRead = useCallback(() => {
+    const messageId = pendingReadIdRef.current
+
+    // 타이머 정리 (항상 먼저 실행)
+    if (readTimerRef.current) {
+      clearTimeout(readTimerRef.current)
+      readTimerRef.current = null
+    }
+
+    if (messageId === null) return
+    if (messageId === lastSentReadIdRef.current) return  // 중복 방지
+
+    storeMarkAsRead(numericRoomId, messageId)
+
+    lastSentReadIdRef.current = messageId
+    pendingReadIdRef.current = null
+  }, [numericRoomId, storeMarkAsRead])
+
+  // 읽음 처리 스케줄링 (throttle)
+  const scheduleReadFlush = useCallback((messageId: number) => {
+    // pending 값은 항상 덮어쓰기 (마지막 ID만 유지)
+    pendingReadIdRef.current = messageId
+
+    // 이미 타이머가 있으면 스킵 (throttle)
+    if (readTimerRef.current) return
+
+    readTimerRef.current = setTimeout(() => {
+      flushRead()
+    }, 300)  // 300ms throttle
+  }, [flushRead])
 
   // 채팅방 정보 로드
   useEffect(() => {
@@ -125,6 +182,72 @@ export default function ChatRoomPage() {
     }
     fetchRoom()
   }, [numericRoomId, navigate])
+
+  // room 로드 시 participants 초기화
+  useEffect(() => {
+    if (room) {
+      const map = new Map<number, number>()
+      ;(room.participants ?? []).forEach(p => map.set(p.id, p.lastReadMessageId))
+      setParticipants(map)
+    }
+  }, [room])
+
+  // 트리거 1: 탭 포커스 복귀 시 재동기화
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        syncParticipants()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [syncParticipants])
+
+  // 트리거 2: unread 지속 감지 시 재동기화
+  useEffect(() => {
+    // 성능 최적화: 내 마지막 메시지만 검사
+    const myLastMessage = [...messages].reverse().find(msg => msg.senderId === user?.id)
+
+    let hasUnread = false
+    if (myLastMessage) {
+      participants.forEach((lastReadId, otherId) => {
+        if (otherId !== user?.id && lastReadId < myLastMessage.messageId) {
+          hasUnread = true
+        }
+      })
+    }
+
+    if (hasUnread) {
+      // 이미 타이머가 있으면 스킵
+      if (unreadSyncTimerRef.current) return
+
+      // 마지막 동기화로부터 5초 이내면 스킵
+      if (Date.now() - lastSyncTimeRef.current < 5000) return
+
+      unreadSyncTimerRef.current = setTimeout(() => {
+        syncParticipants()
+        lastSyncTimeRef.current = Date.now()
+        unreadSyncTimerRef.current = null
+      }, 3000)
+    } else {
+      // unread가 없으면 타이머 클리어
+      if (unreadSyncTimerRef.current) {
+        clearTimeout(unreadSyncTimerRef.current)
+        unreadSyncTimerRef.current = null
+      }
+    }
+  }, [messages, participants, user?.id, syncParticipants])
+
+  // 컴포넌트 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (unreadSyncTimerRef.current) {
+        clearTimeout(unreadSyncTimerRef.current)
+      }
+    }
+  }, [])
 
   // 메시지 목록 로드
   useEffect(() => {
@@ -144,35 +267,48 @@ export default function ChatRoomPage() {
     fetchMessages()
   }, [numericRoomId])
 
-  // 스크롤 최하단으로 이동 (초기 로드, 새 메시지)
+  // 스크롤 최하단으로 이동 (초기 로드)
   useEffect(() => {
     if (isInitialLoad.current && messages.length > 0 && !isLoading) {
       messagesEndRef.current?.scrollIntoView()
       isInitialLoad.current = false
 
-      // 마지막 메시지 읽음 처리
+      // 마지막 메시지 읽음 처리 (즉시 전송)
       const lastMsg = messages[messages.length - 1]
       if (lastMsg) {
-        markAsRead(lastMsg.messageId)
-        chatApi.updateLastRead(numericRoomId, lastMsg.messageId)
+        pendingReadIdRef.current = lastMsg.messageId
+        flushRead()
       }
     }
-  }, [messages, isLoading, markAsRead, numericRoomId])
+  }, [messages, isLoading, flushRead])
 
-  // 새 메시지 도착시 스크롤
+  // 새 메시지 도착시 스크롤 + throttle로 읽음 처리
   useEffect(() => {
     if (!isInitialLoad.current && messages.length > 0) {
       // 새 메시지 오면 항상 아래로 스크롤
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
 
-      // 마지막 메시지 읽음 처리
+      // 마지막 메시지 읽음 처리 (throttle 적용)
       const lastMsg = messages[messages.length - 1]
       if (lastMsg) {
-        markAsRead(lastMsg.messageId)
-        chatApi.updateLastRead(numericRoomId, lastMsg.messageId)
+        scheduleReadFlush(lastMsg.messageId)
       }
     }
-  }, [messages.length, markAsRead, numericRoomId])
+  }, [messages.length, scheduleReadFlush])
+
+  // 채팅방 나갈 때 pending 읽음 처리 즉시 전송
+  useEffect(() => {
+    return () => {
+      if (readTimerRef.current) {
+        clearTimeout(readTimerRef.current)
+        readTimerRef.current = null
+      }
+      // pending이 있으면 즉시 전송
+      if (pendingReadIdRef.current !== null && pendingReadIdRef.current !== lastSentReadIdRef.current) {
+        storeMarkAsRead(numericRoomId, pendingReadIdRef.current)
+      }
+    }
+  }, [numericRoomId, storeMarkAsRead])
 
   // 무한 스크롤 (위로)
   const handleScroll = async () => {
@@ -244,7 +380,7 @@ export default function ChatRoomPage() {
         </button>
         <div className={styles.roomInfo}>
           <h1 className={styles.roomName}>{room.name}</h1>
-          <span className={styles.userCount}>{room.users.length}명</span>
+          <span className={styles.userCount}>{(room.participants ?? []).length}명</span>
         </div>
         <div className={styles.headerRight}>
           <span className={`${styles.status} ${isConnected ? styles.connected : ''}`}>
@@ -272,7 +408,13 @@ export default function ChatRoomPage() {
       <div className={styles.messages} ref={messagesContainerRef} onScroll={handleScroll}>
         {isLoadingMore && <div className={styles.loadingMore}>이전 메시지 로딩중...</div>}
         {messages.map((msg) => (
-          <MessageItem key={msg.messageId} message={msg} isOwn={msg.senderId === user?.id} />
+          <MessageItem
+            key={msg.messageId}
+            message={msg}
+            isOwn={msg.senderId === user?.id}
+            participants={participants}
+            myUserId={user?.id ?? 0}
+          />
         ))}
         <div ref={messagesEndRef} />
       </div>

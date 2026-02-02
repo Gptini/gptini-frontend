@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import type { ChatMessage } from '../../types'
 import { formatTime } from '../../utils/dateFormat'
 import styles from './MessageItem.module.css'
@@ -5,9 +6,24 @@ import styles from './MessageItem.module.css'
 interface MessageItemProps {
   message: ChatMessage
   isOwn: boolean
+  participants: Map<number, number>
+  myUserId: number
 }
 
-export default function MessageItem({ message, isOwn }: MessageItemProps) {
+export default function MessageItem({ message, isOwn, participants, myUserId }: MessageItemProps) {
+  // 내 메시지일 때만 "N명 안 읽음" 계산
+  const unreadCount = useMemo(() => {
+    if (!isOwn) return 0
+
+    let count = 0
+    participants.forEach((lastReadId, userId) => {
+      if (userId !== myUserId && lastReadId < message.messageId) {
+        count++
+      }
+    })
+    return count
+  }, [isOwn, participants, message.messageId, myUserId])
+
   const renderContent = () => {
     switch (message.type) {
       case 'IMAGE':
@@ -41,8 +57,8 @@ export default function MessageItem({ message, isOwn }: MessageItemProps) {
         {!isOwn && <span className={styles.sender}>{message.senderNickname}</span>}
         <div className={styles.bubble}>{renderContent()}</div>
         <div className={styles.meta}>
-          {message.unreadCount > 0 && (
-            <span className={styles.unread}>{message.unreadCount}</span>
+          {isOwn && unreadCount > 0 && (
+            <span className={styles.unread}>{unreadCount}</span>
           )}
           <span className={styles.time}>{formatTime(message.createdAt)}</span>
         </div>

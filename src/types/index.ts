@@ -30,13 +30,21 @@ export interface SignUpRequest {
   nickname: string
 }
 
+// Chat Room Participant
+export interface ChatRoomParticipant {
+  id: number
+  nickname: string
+  profileImageUrl: string | null
+  lastReadMessageId: number
+}
+
 // Chat Room
 export interface ChatRoom {
   id: number
   name: string
   type: 'PRIVATE' | 'GROUP'
   createdAt: string
-  users: User[]
+  participants: ChatRoomParticipant[]
   isExisting?: boolean
 }
 
@@ -65,7 +73,6 @@ export interface ChatMessage {
   fileUrl: string | null
   fileName: string | null
   createdAt: string
-  unreadCount: number
 }
 
 export interface SendMessageRequest {

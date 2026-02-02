@@ -1,5 +1,5 @@
 import apiClient from './apiClient'
-import type { ApiResponse, ChatRoom, ChatRoomListItem, ChatMessage, User } from '../types'
+import type { ApiResponse, ChatRoom, ChatRoomListItem, ChatMessage, ChatRoomParticipant, User } from '../types'
 
 export const chatApi = {
   // 채팅방 목록 조회
@@ -31,6 +31,12 @@ export const chatApi = {
   // 채팅방 참여자 목록
   getRoomUsers: async (roomId: number): Promise<User[]> => {
     const response = await apiClient.get<ApiResponse<User[]>>(`/api/v1/chat/rooms/${roomId}/users`)
+    return response.data.data
+  },
+
+  // 채팅방 참여자 상태 조회 (lastReadMessageId 포함)
+  getParticipants: async (roomId: number): Promise<ChatRoomParticipant[]> => {
+    const response = await apiClient.get<ApiResponse<ChatRoomParticipant[]>>(`/api/v1/chat/rooms/${roomId}/participants`)
     return response.data.data
   },
 
