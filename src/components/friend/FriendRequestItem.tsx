@@ -1,4 +1,5 @@
 import type { FriendRequest } from '../../types'
+import { formatDateTime } from '../../utils/dateFormat'
 import Button from '../common/Button'
 import styles from './FriendRequestItem.module.css'
 
@@ -8,16 +9,6 @@ interface FriendRequestItemProps {
   onAccept?: (requestId: number) => void
   onReject?: (requestId: number) => void
   isLoading?: boolean
-}
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('ko-KR', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
 }
 
 export default function FriendRequestItem({
@@ -40,7 +31,7 @@ export default function FriendRequestItem({
       </div>
       <div className={styles.info}>
         <span className={styles.nickname}>{user.nickname}</span>
-        <span className={styles.date}>{formatDate(request.createdAt)}</span>
+        <span className={styles.date}>{formatDateTime(request.createdAt)}</span>
       </div>
       {type === 'received' && (
         <div className={styles.actions}>

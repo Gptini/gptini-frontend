@@ -1,16 +1,10 @@
 import type { ChatMessage } from '../../types'
+import { formatTime } from '../../utils/dateFormat'
 import styles from './MessageItem.module.css'
 
 interface MessageItemProps {
   message: ChatMessage
   isOwn: boolean
-}
-
-function formatTime(dateString: string): string {
-  return new Date(dateString).toLocaleTimeString('ko-KR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
 }
 
 export default function MessageItem({ message, isOwn }: MessageItemProps) {
