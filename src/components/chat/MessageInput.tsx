@@ -39,7 +39,8 @@ export default function MessageInput({ onSend, onFileUpload, disabled }: Message
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    // 한글 조합 중(IME composing)에는 전송하지 않음
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault()
       handleSendText()
     }

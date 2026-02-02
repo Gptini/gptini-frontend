@@ -30,10 +30,13 @@ export default function ChatRoomPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [hasMore, setHasMore] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
+  const [isLeaving, setIsLeaving] = useState(false)
 
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const isInitialLoad = useRef(true)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const numericRoomId = Number(roomId)
 
@@ -55,6 +58,23 @@ export default function ChatRoomPage() {
     },
     [user?.id]
   )
+
+  // 메뉴 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false)
+      }
+    }
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showMenu])
 
   // WebSocket 연결 확인 (채팅 목록에서 이미 연결되어 있을 수 있음)
   useEffect(() => {
@@ -192,6 +212,22 @@ export default function ChatRoomPage() {
     return fileApi.upload(file)
   }
 
+  const handleLeaveRoom = async () => {
+    if (!window.confirm('정말 채팅방을 나가시겠습니까?')) return
+
+    setIsLeaving(true)
+    try {
+      await chatApi.leaveRoom(numericRoomId)
+      navigate('/chat')
+    } catch (error) {
+      console.error('채팅방 나가기 실패:', error)
+      alert('채팅방 나가기에 실패했습니다.')
+    } finally {
+      setIsLeaving(false)
+      setShowMenu(false)
+    }
+  }
+
   if (isLoading || !room) {
     return (
       <div className={styles.container}>
@@ -210,9 +246,27 @@ export default function ChatRoomPage() {
           <h1 className={styles.roomName}>{room.name}</h1>
           <span className={styles.userCount}>{room.users.length}명</span>
         </div>
-        <span className={`${styles.status} ${isConnected ? styles.connected : ''}`}>
-          {isConnected ? '연결됨' : '연결중...'}
-        </span>
+        <div className={styles.headerRight}>
+          <span className={`${styles.status} ${isConnected ? styles.connected : ''}`}>
+            {isConnected ? '연결됨' : '연결중...'}
+          </span>
+          <div className={styles.menuWrapper} ref={menuRef}>
+            <button className={styles.menuButton} onClick={() => setShowMenu(!showMenu)}>
+              ⋮
+            </button>
+            {showMenu && (
+              <div className={styles.menuDropdown}>
+                <button
+                  className={styles.menuItem}
+                  onClick={handleLeaveRoom}
+                  disabled={isLeaving}
+                >
+                  {isLeaving ? '나가는 중...' : '채팅방 나가기'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </header>
 
       <div className={styles.messages} ref={messagesContainerRef} onScroll={handleScroll}>

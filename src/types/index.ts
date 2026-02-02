@@ -37,6 +37,7 @@ export interface ChatRoom {
   type: 'PRIVATE' | 'GROUP'
   createdAt: string
   users: User[]
+  isExisting?: boolean
 }
 
 export interface ChatRoomListItem {

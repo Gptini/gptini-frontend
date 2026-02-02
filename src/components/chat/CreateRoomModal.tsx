@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Modal from '../common/Modal'
 import Input from '../common/Input'
 import Button from '../common/Button'
@@ -14,6 +15,7 @@ interface CreateRoomModalProps {
 }
 
 export default function CreateRoomModal({ isOpen, onClose, onCreated }: CreateRoomModalProps) {
+  const navigate = useNavigate()
   const [roomName, setRoomName] = useState('')
   const [filterKeyword, setFilterKeyword] = useState('')
   const [friends, setFriends] = useState<Friend[]>([])
@@ -62,9 +64,16 @@ export default function CreateRoomModal({ isOpen, onClose, onCreated }: CreateRo
 
     setIsCreating(true)
     try {
-      await chatApi.createRoom(roomName.trim(), Array.from(selectedIds))
-      onCreated()
-      onClose()
+      const room = await chatApi.createRoom(roomName.trim(), Array.from(selectedIds))
+
+      if (room.isExisting) {
+        alert(`"${room.name}" 채팅방이 이미 존재합니다. 해당 채팅방으로 이동합니다.`)
+        onClose()
+        navigate(`/chat/${room.id}`)
+      } else {
+        onCreated()
+        onClose()
+      }
     } catch (error) {
       console.error('채팅방 생성 실패:', error)
     } finally {
