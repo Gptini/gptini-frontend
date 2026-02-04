@@ -10,6 +10,7 @@ interface ChatState {
   // WebSocket 상태
   isConnected: boolean
   client: Client | null
+  connectedUserId: number | null  // 현재 연결된 userId 추적
 
   // 채팅방 목록 실시간 데이터
   roomUpdates: Map<number, RoomUpdate>
@@ -40,16 +41,24 @@ interface ChatState {
 export const useChatStore = create<ChatState>((set, get) => ({
   isConnected: false,
   client: null,
+  connectedUserId: null,
   roomUpdates: new Map(),
   currentRoomId: null,
   messages: [],
   subscriptions: new Map(),
 
   connect: (userId: number) => {
-    const { client: existingClient } = get()
-    // 이미 연결되었거나 연결 시도 중이면 무시
-    if (existingClient?.active) {
-      console.log('[STOMP] Already active, skipping connect')
+    const { client: existingClient, connectedUserId } = get()
+
+    // userId가 다르면 기존 연결 끊고 새로 연결
+    if (existingClient?.active && connectedUserId !== userId) {
+      console.log('[STOMP] User changed, reconnecting...', { old: connectedUserId, new: userId })
+      get().disconnect()
+    }
+
+    // 같은 userId로 이미 연결되어 있으면 무시
+    if (existingClient?.active && connectedUserId === userId) {
+      console.log('[STOMP] Already active with same user, skipping connect')
       return
     }
 
@@ -67,7 +76,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
       onConnect: () => {
         console.log('[STOMP] Connected')
-        set({ isConnected: true })
+        set({ isConnected: true, connectedUserId: userId })
 
         // 유저별 룸 업데이트 토픽 구독
         get().subscribeToUserRooms(userId)
@@ -87,7 +96,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       },
     })
 
-    set({ client })
+    set({ client, connectedUserId: userId })
     client.activate()
   },
 
@@ -104,6 +113,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set({
       client: null,
       isConnected: false,
+      connectedUserId: null,
       subscriptions: new Map(),
       roomUpdates: new Map(),
       currentRoomId: null,
