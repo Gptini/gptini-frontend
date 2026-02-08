@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import type { KeyboardEvent, ClipboardEvent, ChangeEvent } from 'react'
+import imageCompression from 'browser-image-compression'
 import type { SendMessageRequest, MessageType } from '../../types'
 import styles from './MessageInput.module.css'
 
@@ -14,15 +15,28 @@ const ALLOWED_FILE_TYPES = [
   'image/png',
   'image/gif',
   'image/webp',
-  'application/pdf',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ]
+
+const MAX_FILE_SIZE_MB = 50
+const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024
 
 function getMessageType(mimeType: string): MessageType {
   if (mimeType === 'image/gif') return 'GIF'
-  if (mimeType.startsWith('image/')) return 'IMAGE'
-  return 'FILE'
+  return 'IMAGE'
+}
+
+async function compressImage(file: File): Promise<File> {
+  // GIF는 압축하면 애니메이션이 깨지므로 그대로 반환
+  if (file.type === 'image/gif') return file
+
+  // 1MB 이하면 압축 불필요
+  if (file.size <= 1 * 1024 * 1024) return file
+
+  return imageCompression(file, {
+    maxSizeMB: 1,
+    maxWidthOrHeight: 2048,
+    useWebWorker: true,
+  })
 }
 
 export default function MessageInput({ onSend, onFileUpload, disabled }: MessageInputProps) {
@@ -49,13 +63,18 @@ export default function MessageInput({ onSend, onFileUpload, disabled }: Message
   const handleFileSelect = async (file: File) => {
     if (!onFileUpload) return
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-      alert('지원하지 않는 파일 형식입니다.')
+      alert('이미지 파일만 업로드할 수 있습니다. (JPG, PNG, GIF, WebP)')
+      return
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      alert(`파일 크기는 ${MAX_FILE_SIZE_MB}MB 이하만 가능합니다.`)
       return
     }
 
     setIsUploading(true)
     try {
-      const { url, fileName } = await onFileUpload(file)
+      const compressed = await compressImage(file)
+      const { url, fileName } = await onFileUpload(compressed)
       const type = getMessageType(file.type)
       onSend({ type, fileUrl: url, fileName })
     } catch (error) {
