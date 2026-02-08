@@ -29,7 +29,19 @@ export default function MessageItem({ message, isOwn, participants, myUserId }: 
       case 'IMAGE':
       case 'GIF':
         return (
-          <img src={message.fileUrl || ''} alt={message.fileName || '이미지'} className={styles.image} />
+          <img
+            src={message.fileUrl || ''}
+            alt={message.fileName || '이미지'}
+            className={styles.image}
+            onError={(e) => {
+              const target = e.currentTarget
+              target.style.display = 'none'
+              const placeholder = document.createElement('span')
+              placeholder.className = styles.expired
+              placeholder.textContent = '만료된 이미지입니다'
+              target.parentElement?.appendChild(placeholder)
+            }}
+          />
         )
       case 'FILE':
         return (
