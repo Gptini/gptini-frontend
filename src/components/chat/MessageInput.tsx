@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import type { KeyboardEvent, ClipboardEvent, ChangeEvent } from 'react'
+import imageCompression from 'browser-image-compression'
 import type { SendMessageRequest, MessageType } from '../../types'
 import styles from './MessageInput.module.css'
 
@@ -14,48 +15,114 @@ const ALLOWED_FILE_TYPES = [
   'image/png',
   'image/gif',
   'image/webp',
-  'application/pdf',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ]
+
+const MAX_FILE_SIZE_MB = 50
+const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024
 
 function getMessageType(mimeType: string): MessageType {
   if (mimeType === 'image/gif') return 'GIF'
-  if (mimeType.startsWith('image/')) return 'IMAGE'
-  return 'FILE'
+  return 'IMAGE'
+}
+
+async function compressImage(file: File): Promise<File> {
+  if (file.type === 'image/gif') return file
+  if (file.size <= 1 * 1024 * 1024) return file
+
+  return imageCompression(file, {
+    maxSizeMB: 1,
+    maxWidthOrHeight: 2048,
+    useWebWorker: true,
+  })
+}
+
+interface PendingImage {
+  file: File
+  preview: string
 }
 
 export default function MessageInput({ onSend, onFileUpload, disabled }: MessageInputProps) {
   const [text, setText] = useState('')
   const [isUploading, setIsUploading] = useState(false)
+  const [pendingImage, setPendingImage] = useState<PendingImage | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleSendText = () => {
-    const trimmed = text.trim()
-    if (!trimmed) return
+  const clearPendingImage = () => {
+    if (pendingImage) {
+      URL.revokeObjectURL(pendingImage.preview)
+      setPendingImage(null)
+    }
+  }
 
-    onSend({ type: 'TEXT', content: trimmed })
-    setText('')
+  const attachImage = (file: File) => {
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      alert('이미지 파일만 업로드할 수 있습니다. (JPG, PNG, GIF, WebP)')
+      return
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      alert(`파일 크기는 ${MAX_FILE_SIZE_MB}MB 이하만 가능합니다.`)
+      return
+    }
+
+    clearPendingImage()
+    const preview = URL.createObjectURL(file)
+    setPendingImage({ file, preview })
+  }
+
+  const handleSend = async () => {
+    const trimmed = text.trim()
+
+    if (pendingImage && onFileUpload) {
+      setIsUploading(true)
+      try {
+        const compressed = await compressImage(pendingImage.file)
+        const { url, fileName } = await onFileUpload(compressed)
+        const type = getMessageType(pendingImage.file.type)
+
+        if (trimmed) {
+          onSend({ type: 'TEXT', content: trimmed })
+        }
+        onSend({ type, fileUrl: url, fileName })
+
+        clearPendingImage()
+        setText('')
+      } catch (error) {
+        console.error('파일 업로드 실패:', error)
+        alert('파일 업로드에 실패했습니다.')
+      } finally {
+        setIsUploading(false)
+      }
+      return
+    }
+
+    if (trimmed) {
+      onSend({ type: 'TEXT', content: trimmed })
+      setText('')
+    }
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    // 한글 조합 중(IME composing)에는 전송하지 않음
     if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault()
-      handleSendText()
+      handleSend()
     }
   }
 
   const handleFileSelect = async (file: File) => {
     if (!onFileUpload) return
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-      alert('지원하지 않는 파일 형식입니다.')
+      alert('이미지 파일만 업로드할 수 있습니다. (JPG, PNG, GIF, WebP)')
+      return
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      alert(`파일 크기는 ${MAX_FILE_SIZE_MB}MB 이하만 가능합니다.`)
       return
     }
 
     setIsUploading(true)
     try {
-      const { url, fileName } = await onFileUpload(file)
+      const compressed = await compressImage(file)
+      const { url, fileName } = await onFileUpload(compressed)
       const type = getMessageType(file.type)
       onSend({ type, fileUrl: url, fileName })
     } catch (error) {
@@ -69,60 +136,76 @@ export default function MessageInput({ onSend, onFileUpload, disabled }: Message
   const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      handleFileSelect(file)
+      attachImage(file)
     }
     e.target.value = ''
   }
 
-  const handlePaste = async (e: ClipboardEvent<HTMLTextAreaElement>) => {
+  const handlePaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
     const items = e.clipboardData.items
     for (const item of items) {
       if (item.type.startsWith('image/')) {
         e.preventDefault()
         const file = item.getAsFile()
         if (file) {
-          await handleFileSelect(file)
+          attachImage(file)
         }
         return
       }
     }
   }
 
+  const canSend = !disabled && !isUploading && (!!text.trim() || !!pendingImage)
+
   return (
-    <div className={styles.container}>
-      <button
-        type="button"
-        className={styles.attachButton}
-        onClick={() => fileInputRef.current?.click()}
-        disabled={disabled || isUploading}
-      >
-        📎
-      </button>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept={ALLOWED_FILE_TYPES.join(',')}
-        onChange={handleFileInputChange}
-        hidden
-      />
-      <textarea
-        className={styles.input}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={handleKeyDown}
-        onPaste={handlePaste}
-        placeholder="메시지를 입력하세요"
-        rows={1}
-        disabled={disabled || isUploading}
-      />
-      <button
-        type="button"
-        className={styles.sendButton}
-        onClick={handleSendText}
-        disabled={disabled || isUploading || !text.trim()}
-      >
-        {isUploading ? '...' : '전송'}
-      </button>
+    <div className={styles.wrapper}>
+      {pendingImage && (
+        <div className={styles.previewBar}>
+          <img src={pendingImage.preview} alt="미리보기" className={styles.previewImage} />
+          <button
+            type="button"
+            className={styles.previewRemove}
+            onClick={clearPendingImage}
+          >
+            X
+          </button>
+        </div>
+      )}
+      <div className={styles.container}>
+        <button
+          type="button"
+          className={styles.attachButton}
+          onClick={() => fileInputRef.current?.click()}
+          disabled={disabled || isUploading}
+        >
+          📎
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={ALLOWED_FILE_TYPES.join(',')}
+          onChange={handleFileInputChange}
+          hidden
+        />
+        <textarea
+          className={styles.input}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
+          placeholder={pendingImage ? '메시지를 추가하거나 Enter로 전송' : '메시지를 입력하세요'}
+          rows={1}
+          disabled={disabled || isUploading}
+        />
+        <button
+          type="button"
+          className={styles.sendButton}
+          onClick={handleSend}
+          disabled={!canSend}
+        >
+          {isUploading ? '...' : '전송'}
+        </button>
+      </div>
     </div>
   )
 }

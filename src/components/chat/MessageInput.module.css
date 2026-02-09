@@ -1,10 +1,51 @@
+.wrapper {
+  background-color: white;
+  border-top: 1px solid #e5e7eb;
+}
+
+.previewBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.previewImage {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.previewRemove {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background-color: #ef4444;
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.15s;
+}
+
+.previewRemove:hover {
+  background-color: #dc2626;
+}
+
 .container {
   display: flex;
   align-items: flex-end;
   gap: 8px;
   padding: 12px 16px;
-  background-color: white;
-  border-top: 1px solid #e5e7eb;
 }
 
 .attachButton {
