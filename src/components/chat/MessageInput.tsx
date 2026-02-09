@@ -108,31 +108,6 @@ export default function MessageInput({ onSend, onFileUpload, disabled }: Message
     }
   }
 
-  const handleFileSelect = async (file: File) => {
-    if (!onFileUpload) return
-    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-      alert('이미지 파일만 업로드할 수 있습니다. (JPG, PNG, GIF, WebP)')
-      return
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      alert(`파일 크기는 ${MAX_FILE_SIZE_MB}MB 이하만 가능합니다.`)
-      return
-    }
-
-    setIsUploading(true)
-    try {
-      const compressed = await compressImage(file)
-      const { url, fileName } = await onFileUpload(compressed)
-      const type = getMessageType(file.type)
-      onSend({ type, fileUrl: url, fileName })
-    } catch (error) {
-      console.error('파일 업로드 실패:', error)
-      alert('파일 업로드에 실패했습니다.')
-    } finally {
-      setIsUploading(false)
-    }
-  }
-
   const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
