@@ -46,6 +46,7 @@ export default function MessageInput({ onSend, onFileUpload, disabled }: Message
   const [isUploading, setIsUploading] = useState(false)
   const [pendingImage, setPendingImage] = useState<PendingImage | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const clearPendingImage = () => {
     if (pendingImage) {
@@ -86,6 +87,7 @@ export default function MessageInput({ onSend, onFileUpload, disabled }: Message
 
         clearPendingImage()
         setText('')
+        textareaRef.current?.focus()
       } catch (error) {
         console.error('파일 업로드 실패:', error)
         alert('파일 업로드에 실패했습니다.')
@@ -98,6 +100,7 @@ export default function MessageInput({ onSend, onFileUpload, disabled }: Message
     if (trimmed) {
       onSend({ type: 'TEXT', content: trimmed })
       setText('')
+      textareaRef.current?.focus()
     }
   }
 
@@ -163,6 +166,7 @@ export default function MessageInput({ onSend, onFileUpload, disabled }: Message
           hidden
         />
         <textarea
+          ref={textareaRef}
           className={styles.input}
           value={text}
           onChange={(e) => setText(e.target.value)}
