@@ -75,6 +75,10 @@
   display: block;
 }
 
+.clickable {
+  cursor: zoom-in;
+}
+
 .file {
   display: inline-flex;
   align-items: center;

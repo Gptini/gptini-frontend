@@ -1,6 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { ChatMessage } from '../../types'
 import { formatTime } from '../../utils/dateFormat'
+import ImageViewer from './ImageViewer'
 import styles from './MessageItem.module.css'
 
 interface MessageItemProps {
@@ -11,6 +12,8 @@ interface MessageItemProps {
 }
 
 export default function MessageItem({ message, isOwn, participants, myUserId }: MessageItemProps) {
+  const [viewerSrc, setViewerSrc] = useState<string | null>(null)
+
   // 내 메시지일 때만 "N명 안 읽음" 계산
   const unreadCount = useMemo(() => {
     if (!isOwn) return 0
@@ -32,7 +35,8 @@ export default function MessageItem({ message, isOwn, participants, myUserId }: 
           <img
             src={message.fileUrl || ''}
             alt={message.fileName || '이미지'}
-            className={styles.image}
+            className={`${styles.image} ${styles.clickable}`}
+            onClick={() => setViewerSrc(message.fileUrl || '')}
             onError={(e) => {
               const target = e.currentTarget
               target.style.display = 'none'
@@ -55,6 +59,14 @@ export default function MessageItem({ message, isOwn, participants, myUserId }: 
   }
 
   return (
+    <>
+    {viewerSrc && (
+      <ImageViewer
+        src={viewerSrc}
+        alt={message.fileName || '이미지'}
+        onClose={() => setViewerSrc(null)}
+      />
+    )}
     <div className={`${styles.container} ${isOwn ? styles.own : ''}`}>
       {!isOwn && (
         <div className={styles.avatar}>
@@ -76,5 +88,6 @@ export default function MessageItem({ message, isOwn, participants, myUserId }: 
         </div>
       </div>
     </div>
+    </>
   )
 }
