@@ -75,8 +75,12 @@
   display: block;
 }
 
-.clickable {
+.imageButton {
+  padding: 0;
+  border: none;
+  background: none;
   cursor: zoom-in;
+  display: block;
 }
 
 .file {
