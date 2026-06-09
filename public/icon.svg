@@ -1,4 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="80" fill="#ec4899"/>
-  <text x="256" y="360" font-family="system-ui, -apple-system, sans-serif" font-size="300" font-weight="700" text-anchor="middle" fill="white">G</text>
+  <rect width="512" height="512" rx="80" fill="#1a1a1a"/>
+  <g transform="translate(256,256)">
+    <ellipse cx="0" cy="-90" rx="28" ry="62" fill="#D4A96A" transform="rotate(0)"/>
+    <ellipse cx="0" cy="-90" rx="28" ry="62" fill="#C9875A" transform="rotate(45)"/>
+    <ellipse cx="0" cy="-90" rx="28" ry="62" fill="#CF9B6B" transform="rotate(90)"/>
+    <ellipse cx="0" cy="-90" rx="28" ry="62" fill="#C98060" transform="rotate(135)"/>
+    <ellipse cx="0" cy="-90" rx="28" ry="62" fill="#D4A96A" transform="rotate(180)"/>
+    <ellipse cx="0" cy="-90" rx="28" ry="62" fill="#C9875A" transform="rotate(225)"/>
+    <ellipse cx="0" cy="-90" rx="28" ry="62" fill="#CF9B6B" transform="rotate(270)"/>
+    <ellipse cx="0" cy="-90" rx="28" ry="62" fill="#C98060" transform="rotate(315)"/>
+  </g>
 </svg>
