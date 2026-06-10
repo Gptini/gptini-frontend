@@ -1,0 +1,17 @@
+{
+  "name": "GPTini",
+  "short_name": "GPTini",
+  "description": "GPTini 채팅",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a1a1a",
+  "icons": [
+    {
+      "src": "/claude-icon.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

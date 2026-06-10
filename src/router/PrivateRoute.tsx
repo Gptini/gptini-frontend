@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import useAuthStore from '../stores/authStore'
+import { subscribePush } from '../services/pushNotification'
 
 export default function PrivateRoute() {
   const { isAuthenticated, user, isLoading, fetchMe } = useAuthStore()
@@ -10,6 +11,12 @@ export default function PrivateRoute() {
       fetchMe()
     }
   }, [isAuthenticated, user, isLoading, fetchMe])
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      subscribePush().catch(() => {})
+    }
+  }, [isAuthenticated, user])
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
