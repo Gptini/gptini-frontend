@@ -1,10 +1,64 @@
+.wrapper {
+  background-color: white;
+  border-top: 1px solid #e5e7eb;
+}
+
+.previewRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+}
+
+.previewThumb {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+/* 채팅 컨테이너의 max-width(600px)보다 넓으면 데스크톱 웹으로 보고 미리보기를 좀 더 키움 */
+@media (min-width: 601px) {
+  .previewThumb {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+.previewRemove {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background-color: #ef4444;
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.15s;
+}
+
+.previewRemove:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.previewRemove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .container {
   display: flex;
   align-items: flex-end;
   gap: 8px;
   padding: 12px 16px;
-  background-color: white;
-  border-top: 1px solid #e5e7eb;
 }
 
 .attachButton {
