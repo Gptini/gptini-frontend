@@ -99,8 +99,8 @@
 }
 
 .tab.active {
-  color: #4f46e5;
-  border-bottom-color: #4f46e5;
+  color: var(--primary);
+  border-bottom-color: var(--primary);
   font-weight: 600;
 }
 
@@ -151,6 +151,6 @@
 }
 
 .navActive {
-  color: #4f46e5;
+  color: var(--primary);
   font-weight: 600;
 }

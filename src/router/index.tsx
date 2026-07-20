@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
-import { LoginPage, SignUpPage, ChatRoomListPage, ChatRoomPage, FriendsPage } from '../pages'
+import { LoginPage, SignUpPage, ChatRoomListPage, ChatRoomPage, FriendsPage, SettingsPage } from '../pages'
 import PrivateRoute from './PrivateRoute'
 
 export const router = createBrowserRouter([
@@ -30,6 +30,10 @@ export const router = createBrowserRouter([
       {
         path: 'friends',
         element: <FriendsPage />,
+      },
+      {
+        path: 'settings',
+        element: <SettingsPage />,
       },
     ],
   },

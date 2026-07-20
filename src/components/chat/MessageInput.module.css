@@ -46,7 +46,7 @@
 }
 
 .input:focus {
-  border-color: #4f46e5;
+  border-color: var(--primary);
 }
 
 .input:disabled {
@@ -60,7 +60,7 @@
 .sendButton {
   height: 40px;
   padding: 0 20px;
-  background-color: #4f46e5;
+  background-color: var(--primary);
   color: white;
   border: none;
   border-radius: 20px;
@@ -72,10 +72,10 @@
 }
 
 .sendButton:hover:not(:disabled) {
-  background-color: #4338ca;
+  background-color: var(--primary-hover);
 }
 
 .sendButton:disabled {
-  background-color: #c7d2fe;
+  background-color: var(--primary-disabled);
   cursor: not-allowed;
 }
