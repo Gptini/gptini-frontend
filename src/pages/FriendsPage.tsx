@@ -208,6 +208,9 @@ export default function FriendsPage() {
           채팅
         </button>
         <button className={`${styles.navItem} ${styles.navActive}`}>친구</button>
+        <button className={styles.navItem} onClick={() => navigate('/settings')}>
+          설정
+        </button>
       </nav>
 
       <AddFriendModal

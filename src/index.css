@@ -7,6 +7,10 @@
 :root {
   --primary: #4f46e5;
   --primary-hover: #4338ca;
+  --primary-light: #eef2ff;
+  --primary-dark: #3730a3;
+  --primary-darker: #1e1b4b;
+  --primary-disabled: #c7d2fe;
   --background: #f9fafb;
   --surface: #ffffff;
   --text: #111827;
@@ -14,6 +18,16 @@
   --border: #e5e7eb;
   --error: #ef4444;
   --success: #22c55e;
+}
+
+/* 그레이 테마: 강조색을 무채색에 가까운 슬레이트 톤으로 낮춤 */
+:root[data-theme='gray'] {
+  --primary: #64748b;
+  --primary-hover: #475569;
+  --primary-light: #e2e8f0;
+  --primary-dark: #334155;
+  --primary-darker: #1e293b;
+  --primary-disabled: #cbd5e1;
 }
 
 body {
