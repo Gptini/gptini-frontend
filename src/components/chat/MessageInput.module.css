@@ -20,6 +20,14 @@
   border: 1px solid #e5e7eb;
 }
 
+/* 채팅 컨테이너의 max-width(600px)보다 넓으면 데스크톱 웹으로 보고 미리보기를 좀 더 키움 */
+@media (min-width: 601px) {
+  .previewImage {
+    width: 120px;
+    height: 120px;
+  }
+}
+
 .previewRemove {
   width: 24px;
   height: 24px;
@@ -87,7 +95,7 @@
 }
 
 .input:focus {
-  border-color: #4f46e5;
+  border-color: var(--primary);
 }
 
 .input:disabled {
@@ -101,7 +109,7 @@
 .sendButton {
   height: 40px;
   padding: 0 20px;
-  background-color: #4f46e5;
+  background-color: var(--primary);
   color: white;
   border: none;
   border-radius: 20px;
@@ -113,10 +121,10 @@
 }
 
 .sendButton:hover:not(:disabled) {
-  background-color: #4338ca;
+  background-color: var(--primary-hover);
 }
 
 .sendButton:disabled {
-  background-color: #c7d2fe;
+  background-color: var(--primary-disabled);
   cursor: not-allowed;
 }

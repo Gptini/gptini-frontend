@@ -106,6 +106,9 @@ export default function ChatRoomListPage() {
         <button className={styles.navItem} onClick={() => navigate('/friends')}>
           친구
         </button>
+        <button className={styles.navItem} onClick={() => navigate('/settings')}>
+          설정
+        </button>
       </nav>
 
       <CreateRoomModal
